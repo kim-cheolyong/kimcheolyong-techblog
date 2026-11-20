@@ -1,0 +1,16 @@
+---
+import { tagPath } from '../lib/posts';
+
+interface Props {
+  tags: string[];
+  searchable?: boolean;
+}
+
+const { tags, searchable = false } = Astro.props;
+---
+
+<ul class="tags" aria-label="글 태그" role="list">
+  {[...new Set(tags)].map((tag) => (
+    <li><a href={tagPath(tag)} data-search-text={searchable ? '' : undefined}>{tag}</a></li>
+  ))}
+</ul>

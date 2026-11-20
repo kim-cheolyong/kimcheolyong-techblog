@@ -1,0 +1,52 @@
+---
+import '../styles/site.css';
+import { siteName, sitePath } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description: string;
+  section?: 'posts' | 'tags' | 'search' | 'about';
+  notFound?: boolean;
+}
+
+const { title, description, section, notFound = false } = Astro.props;
+const pageTitle = title ? `${title} | ${siteName}` : siteName;
+const canonical = new URL(notFound ? sitePath('404.html') : Astro.url.pathname, Astro.site);
+const links = [
+  { key: 'posts', label: '글', path: '' },
+  { key: 'tags', label: '태그', path: 'tags/' },
+  { key: 'search', label: '검색', path: 'search/' },
+  { key: 'about', label: '소개', path: 'about/' },
+];
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    {notFound && <meta name="robots" content="noindex" />}
+    <title>{pageTitle}</title>
+    <link rel="canonical" href={canonical.href} />
+    <link rel="alternate" type="application/rss+xml" title={siteName} href={sitePath('rss.xml')} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+    <header class="site-header">
+      <div class="shell header-inner">
+        <a class="brand" href={sitePath()}><span class="brand-mark" aria-hidden="true"></span>김철용</a>
+        <nav aria-label="주 메뉴">
+          {links.map(({ key, label, path }) => (
+            <a href={sitePath(path)} aria-current={section === key ? (Astro.url.pathname === sitePath(path) ? 'page' : 'location') : undefined}>{label}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="shell" tabindex="-1"><slot /></main>
+    <footer class="site-footer shell">
+      <span>© {new Date().getUTCFullYear()} 김철용</span>
+      <a href={sitePath('rss.xml')}>RSS</a>
+    </footer>
+  </body>
+</html>

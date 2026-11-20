@@ -1,0 +1,20 @@
+---
+import type { GetStaticPaths } from 'astro';
+import PostList from '../../components/PostList.astro';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { groupByTag, publishedPosts } from '../../lib/posts';
+import { sitePath } from '../../lib/site';
+
+export const getStaticPaths = (async () => {
+  const groups = groupByTag(await publishedPosts());
+  return groups.map(([tag, posts]) => ({ params: { tag }, props: { tag, posts } }));
+}) satisfies GetStaticPaths;
+
+const { tag, posts } = Astro.props;
+---
+
+<SiteLayout title={tag} description={`${tag} 태그가 달린 글 ${posts.length}편입니다.`} section="tags">
+  <a class="back-link" href={sitePath('tags/')}>← 모든 태그</a>
+  <h1 class="page-title">{tag}</h1>
+  <PostList posts={posts} />
+</SiteLayout>

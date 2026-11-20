@@ -1,0 +1,28 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render } from 'astro:content';
+import Tags from '../../components/Tags.astro';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { publishedPosts } from '../../lib/posts';
+import { sitePath } from '../../lib/site';
+
+export const getStaticPaths = (async () => {
+  const posts = await publishedPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<SiteLayout title={post.data.title} description={post.data.description} section="posts">
+  <a class="back-link" href={sitePath()}>← 글 목록</a>
+  <article>
+    <header class="article-header">
+      <time datetime={post.data.pubDate}>{post.data.pubDate.replaceAll('-', '.')}</time>
+      <h1>{post.data.title}</h1>
+      <Tags tags={post.data.tags} />
+    </header>
+    <div class="prose"><Content /></div>
+  </article>
+</SiteLayout>

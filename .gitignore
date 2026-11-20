@@ -1,2 +1,8 @@
 # IntelliJ IDEA
 .idea
+
+# Astro and npm
+.astro/
+dist/
+node_modules/
+npm-debug.log*

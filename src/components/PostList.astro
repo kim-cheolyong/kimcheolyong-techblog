@@ -1,0 +1,25 @@
+---
+import { type Post, postPath } from '../lib/posts';
+import Tags from './Tags.astro';
+
+interface Props {
+  posts: Post[];
+  searchable?: boolean;
+  heading?: 'h2' | 'h3';
+}
+
+const { posts, searchable = false, heading: Heading = 'h2' } = Astro.props;
+---
+
+<ul class="post-list" role="list">
+  {posts.map((post) => (
+    <li class="post-row" data-post={searchable ? '' : undefined}>
+      <div>
+        <Heading><a href={postPath(post)} data-search-text={searchable ? '' : undefined}>{post.data.title}</a></Heading>
+        <p data-search-text={searchable ? '' : undefined}>{post.data.description}</p>
+        <Tags tags={post.data.tags} searchable={searchable} />
+      </div>
+      <time datetime={post.data.pubDate}>{post.data.pubDate.replaceAll('-', '.')}</time>
+    </li>
+  ))}
+</ul>

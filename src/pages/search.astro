@@ -1,0 +1,80 @@
+---
+import PostList from '../components/PostList.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { publishedPosts } from '../lib/posts';
+import { sitePath } from '../lib/site';
+
+const posts = await publishedPosts();
+---
+
+<SiteLayout title="검색" description="글 제목, 요약, 태그에서 검색하세요." section="search">
+  <h1 class="page-title">검색</h1>
+  <form id="post-search" class="search-form" role="search" hidden>
+    <label for="query">제목, 요약, 태그 검색</label>
+    <div class="search-controls">
+      <input id="query" name="q" type="search" autocomplete="off" />
+      <button type="submit">검색</button>
+    </div>
+  </form>
+  <noscript><p class="empty">검색을 사용하려면 JavaScript를 켜거나 <a href={sitePath('tags/')}>태그로 글을 찾아보세요</a>.</p></noscript>
+  <p id="search-status" class="search-status" role="status"></p>
+  <PostList posts={posts} searchable />
+</SiteLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#post-search');
+  const input = document.querySelector<HTMLInputElement>('#query');
+  const status = document.querySelector('#search-status');
+
+  function normalize(text: string) {
+    return text.normalize('NFKC').toLowerCase();
+  }
+
+  if (form && input && status) {
+    const posts = Array.from(document.querySelectorAll<HTMLElement>('[data-post]'), (row) => ({
+      row,
+      text: normalize(Array.from(row.querySelectorAll('[data-search-text]'), (field) => field.textContent).join(' ')),
+    }));
+
+    function showResults(query: string, status: Element) {
+      const terms = normalize(query).split(/\s+/).filter(Boolean);
+      let count = 0;
+
+      for (const { row, text } of posts) {
+        const matches = terms.every((term) => text.includes(term));
+        row.hidden = !matches;
+        if (matches) count += 1;
+      }
+
+      status.textContent = count === 0 ? '검색 결과가 없습니다.' : `${count}편의 글`;
+    }
+
+    const restoreQuery = () => {
+      input.value = new URLSearchParams(location.search).get('q') ?? '';
+      showResults(input.value, status);
+    };
+
+    const updateQuery = () => {
+      const query = input.value.trim();
+      const url = new URL(location.href);
+
+      if (query) url.searchParams.set('q', query);
+      else url.searchParams.delete('q');
+
+      history.replaceState(history.state, '', url);
+      showResults(query, status);
+    };
+
+    form.hidden = false;
+    restoreQuery();
+    window.addEventListener('popstate', restoreQuery);
+    input.addEventListener('input', (event) => {
+      if (!(event instanceof InputEvent && event.isComposing)) updateQuery();
+    });
+    input.addEventListener('compositionend', updateQuery);
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      updateQuery();
+    });
+  }
+</script>

@@ -1,0 +1,17 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { groupByTag, publishedPosts, tagPath } from '../../lib/posts';
+
+const groups = groupByTag(await publishedPosts());
+---
+
+<SiteLayout title="태그" description="주제별로 기술 블로그의 글을 찾아보세요." section="tags">
+  <h1 class="page-title">태그</h1>
+  {groups.length > 0 ? (
+    <ul class="tag-index" role="list">
+      {groups.map(([tag, posts]) => (
+        <li><a href={tagPath(tag)}><span>{tag}</span><span class="count">{posts.length}개</span></a></li>
+      ))}
+    </ul>
+  ) : <p class="empty">아직 공개된 태그가 없습니다.</p>}
+</SiteLayout>
